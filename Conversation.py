@@ -48,9 +48,31 @@ class Conversation:
         self.ident = ident
         self.values = values
 
+    def interact(dir, ident, values):
+        # filepaths
+        filepath_json = f"{dir}{ident}.json"
+        filepath_md = f"{dir}{ident}.md"
+
+        # init save file if it doesn't exist
+        if not path.exists(filepath_json):
+            convo = Conversation(ident, [])
+            convo.save(open(filepath_json, "w+"))
+
+        # load
+        convo = Conversation.load(open(filepath_json, "r+"))
+        # update
+        convo.update(values)
+        # submit
+        convo.submit()
+        # write markdown
+        convo.write(open(filepath_md, "w+"))
+        # save
+        convo.save(open(filepath_json, "w+"))
+
     # update according to diff between current values and given values
     #
     # values: List<Value>
+
     def update(self, values):
         valuesNext = []
         for i in range(len(values)):
@@ -113,16 +135,13 @@ class Conversation:
     def write(self, file):
         def writeMessage(message):
             if message['role'] == 'user':
-                file.write(
-                    f"====[ USER ]=================================================================\n\n")
+                file.write(f"# USER\n\n")
                 file.write(f"{message['content']}\n\n")
             elif message['role'] == 'system':
-                file.write(
-                    f"============================================================[ SYSTEM ]=======\n\n")
+                file.write(f"# SYSTEM\n\n")
                 file.write(f"{message['content']}\n\n")
             elif message['role'] == 'assistant':
-                file.write(
-                    f"============================================================[ ASSISTANT ]====\n\n")
+                file.write(f"# ASSISTANT\n\n")
                 file.write(f"{message['content']}\n\n")
 
         for value in self.values:
