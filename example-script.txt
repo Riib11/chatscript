@@ -1,0 +1,25 @@
+def makeSummary(characters):
+  "System: you are a storywriting assistnat..."
+  f"User: tell me a summary with {characters}"
+  summary <- "Assistant"
+  return summary
+
+def selectCharacteristics():
+  ...
+
+def makeStory():
+  # characters <- selectCharacteristics()
+  characters = ["character1: cool guy", "darth vader"]
+  summary <- makeSummary(characters)
+  "System: .."
+  f"User: Make a story based on {summary}"
+  story1 <- "Assistant"
+  if "story1 is good enough":
+    return story1
+  else:
+    "User: that's a great story, write a sequel that's good"
+    story2 <- "Assistant"
+    return (story1, story2)
+
+def main():
+  makeStory()

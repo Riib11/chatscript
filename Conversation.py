@@ -21,7 +21,7 @@ def query(messages):
         model="gpt-3.5-turbo",
         messages=messages
     )
-    print("[>] query answered ✓")
+    print("   query answered ✓")
     try:
         choice = result['choices'][0]
     except IndexError:
@@ -30,7 +30,7 @@ def query(messages):
     if choice['finish_reason'] != "stop":
         raise Exception(f"finish reason: {choice['finish_reason']}")
 
-    print("[>] query is valid ✓")
+    print("   query is valid ✓")
     message = choice['message']
 
     if False:
@@ -60,14 +60,17 @@ class Conversation:
 
         # load
         convo = Conversation.load(open(filepath_json, "r+"))
+        convo.write(open(filepath_md, "w+"))
         # update
         convo.update(values)
-        # submit
-        convo.submit()
-        # write markdown
-        convo.write(open(filepath_md, "w+"))
         # save
         convo.save(open(filepath_json, "w+"))
+        convo.write(open(filepath_md, "w+"))
+        # submit
+        convo.submit()
+        # save
+        convo.save(open(filepath_json, "w+"))
+        convo.write(open(filepath_md, "w+"))
 
     # update according to diff between current values and given values
     #
@@ -149,7 +152,7 @@ class Conversation:
                 writeMessage(value['message'])
             elif value['case'] == 'Query':
                 if value['message'] is None:
-                    file.write("[unevaluated query]\n\n")
+                    writeMessage({ 'role': 'assistant', 'content': "<not generated>" })
                 else:
                     writeMessage(value['message'])
             else:
