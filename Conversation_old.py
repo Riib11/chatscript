@@ -21,7 +21,7 @@ def query(messages):
         model="gpt-3.5-turbo",
         messages=messages
     )
-    print("[>] query answered ✓")
+    print("   query answered ✓")
     try:
         choice = result['choices'][0]
     except IndexError:
@@ -30,7 +30,7 @@ def query(messages):
     if choice['finish_reason'] != "stop":
         raise Exception(f"finish reason: {choice['finish_reason']}")
 
-    print("[>] query is valid ✓")
+    print("   query is valid ✓")
     message = choice['message']
 
     if False:
@@ -48,9 +48,34 @@ class Conversation:
         self.ident = ident
         self.values = values
 
+    def interact(dir, ident, values):
+        # filepaths
+        filepath_json = f"{dir}{ident}.json"
+        filepath_md = f"{dir}{ident}.md"
+
+        # init save file if it doesn't exist
+        if not path.exists(filepath_json):
+            convo = Conversation(ident, [])
+            convo.save(open(filepath_json, "w+"))
+
+        # load
+        convo = Conversation.load(open(filepath_json, "r+"))
+        convo.write(open(filepath_md, "w+"))
+        # update
+        convo.update(values)
+        # save
+        convo.save(open(filepath_json, "w+"))
+        convo.write(open(filepath_md, "w+"))
+        # submit
+        convo.submit()
+        # save
+        convo.save(open(filepath_json, "w+"))
+        convo.write(open(filepath_md, "w+"))
+
     # update according to diff between current values and given values
     #
     # values: List<Value>
+
     def update(self, values):
         valuesNext = []
         for i in range(len(values)):
@@ -113,16 +138,13 @@ class Conversation:
     def write(self, file):
         def writeMessage(message):
             if message['role'] == 'user':
-                file.write(
-                    f"====[ USER ]=================================================================\n\n")
+                file.write(f"# USER\n\n")
                 file.write(f"{message['content']}\n\n")
             elif message['role'] == 'system':
-                file.write(
-                    f"============================================================[ SYSTEM ]=======\n\n")
+                file.write(f"# SYSTEM\n\n")
                 file.write(f"{message['content']}\n\n")
             elif message['role'] == 'assistant':
-                file.write(
-                    f"============================================================[ ASSISTANT ]====\n\n")
+                file.write(f"# ASSISTANT\n\n")
                 file.write(f"{message['content']}\n\n")
 
         for value in self.values:
@@ -130,7 +152,7 @@ class Conversation:
                 writeMessage(value['message'])
             elif value['case'] == 'Query':
                 if value['message'] is None:
-                    file.write("[unevaluated query]\n\n")
+                    writeMessage({ 'role': 'assistant', 'content': "<not generated>" })
                 else:
                     writeMessage(value['message'])
             else:
@@ -204,54 +226,3 @@ def assistant(content=None, overwrite=False):
             },
             'overwrite': overwrite
         }
-
-
-def shortstory(ident, genre, theme, main_idea, author):
-    filepath = f"conversations/shortstory/{ident}.json"
-    filepath_output = f"conversations/shortstory/{ident}.md"
-
-    # create an empty Conversation at the filepath if doesn't already exist
-    if not path.exists(filepath):
-        convo = Conversation(ident, [])
-        convo.save(open(filepath, "w+"))
-
-    convo = Conversation.load(open(filepath, "r+"))
-
-    convo.update([
-        system(
-            "You are a creative and knowledgeable writing assistant for a short story author. The author wants to write innovative, unique, original stories that appeal to niche audiences and not necessarily to the general public."
-        ),
-        user(
-            f"I am writing a {genre} short story with this theme: {theme}. Write a list of interesting, original, and thematic ideas that would be interesting to include in my short story."
-        ),
-        assistant(None),
-        user(
-            "Write a brief summary of a short story that ties together a few of the ideas that you listed above. The summary should include a description of the setting, an introduction to the main characters, the main plot points, and a conclusion."
-        ),
-        assistant(None),
-        user(
-            f"Write a revised version of that summary which uses most of the same details, but also makes sure to include this main idea: {main_idea}."
-        ),
-        assistant(None),
-        user(
-            f"Write a short story in the style of {author} and based on that summary. Make sure the story is around 2500 words. The story should first introduce the setting and main characters, then flush out the details of and transition smoothly between all the plot points, and then finish the story with the conclusion."
-        ),
-        assistant(None),
-        user(
-            "Write a revised version of that short story. Use more stylized language with vivid descriptions and a few metaphors, include more unique details about the setting and characters, and use dialogue more frequently. Make the revised story under 2000 words."
-        ),
-        assistant(None),
-    ])
-    convo.submit()
-
-    convo.write(open(filepath_output, "w+"))
-    convo.save(open(filepath, "w+"))
-
-
-shortstory(
-    "test3-moon",
-    genre="science fiction",
-    theme="in a near-term future where many civilians live and work on the moon, a top secret spy operation is conducted in an international lunar colony",
-    main_idea="political intrigue between spies of different nation-companies that are vying for influence in the lunar colony",
-    author="Isaac Asimov"
-)

@@ -1,228 +1,197 @@
 import os
 from os import path
+import pickle
 import sys
 import json
-import openai
+from OpenAIClient import client
 
-openai_config = json.load(open("openai.json", "r+"))
-openai.api_key = openai_config["api_key"]
-openai.organization = openai_config["organization_id"]
+"""
+# Types
 
-# Conversation
+```
+Model = {
+  'messages': list[Message]
+}
 
-# Value = { case: 'Query', message: Message | None }
-#       | { case: 'Message', message: Message }
-# Message = { role: String, content: String }
+type Message = { 
+  'role': Role, 
+  'content': str
+}
 
-
-def query(messages):
-    print("[>] query sent ...")
-    result = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
-    print("   query answered ✓")
-    try:
-        choice = result['choices'][0]
-    except IndexError:
-        print("response with node choices")
-
-    if choice['finish_reason'] != "stop":
-        raise Exception(f"finish reason: {choice['finish_reason']}")
-
-    print("   query is valid ✓")
-    message = choice['message']
-
-    if False:
-        print(40 * "=")
-        print(message['content'])
-        print(40 * "=")
-
-    return message
+type Role = "user" | "assistant" | "system"
+```
+"""
 
 
 class Conversation:
-    # ident: String
-    # values: List<Value>
-    def __init__(self, ident, values):
-        self.ident = ident
-        self.values = values
+    # - model: Model
+    # - ix: int
 
-    def interact(dir, ident, values):
-        # filepaths
-        filepath_json = f"{dir}{ident}.json"
-        filepath_md = f"{dir}{ident}.md"
+    def __init__(self, name: str):
+        self.name = name
+        self.model = loadModel(self.name)
+        self.focusIx = 0
 
-        # init save file if it doesn't exist
-        if not path.exists(filepath_json):
-            convo = Conversation(ident, [])
-            convo.save(open(filepath_json, "w+"))
+    def set_messages(self, messages):
+        self.model['messages'] = messages
 
-        # load
-        convo = Conversation.load(open(filepath_json, "r+"))
-        convo.write(open(filepath_md, "w+"))
-        # update
-        convo.update(values)
-        # save
-        convo.save(open(filepath_json, "w+"))
-        convo.write(open(filepath_md, "w+"))
-        # submit
-        convo.submit()
-        # save
-        convo.save(open(filepath_json, "w+"))
-        convo.write(open(filepath_md, "w+"))
+    messages = property(lambda self: self.model['messages'], set_messages)
 
-    # update according to diff between current values and given values
-    #
-    # values: List<Value>
+    def getPreviousMessages(self):  # -> list[Message]
+        return self.messages[:self.focusIx]
 
-    def update(self, values):
-        valuesNext = []
-        for i in range(len(values)):
-            if len(self.values) < i + 1:
-                # no more old values left, so just add new values
-                valuesNext += values[i:]
-                break
+    def getFocussedMessage(self):  # -> Message | None
+        return index_list(self.messages, self.focusIx)
 
-            valueOld = self.values[i]
-            valueNew = values[i]
-            if 'overwrite' in valueNew and valueNew['overwrite']:
-                # overwrite the old query
-                valuesNext.append(valueNew)
-                continue
-            if not valueOld['case'] == valueNew['case']:
-                # value mismatch, so overwrite rest of values
-                valuesNext += values[i:]
-                break
-            elif valueNew['case'] == 'Message':
-                if valueOld['message']['content'] == valueNew['message']['content']:
-                    # match
-                    valuesNext.append(valueOld)
-                    continue
-                else:
-                    # message mismatch, so use new values from here
-                    valuesNext += values[i:]
-                    break
-            elif valueNew['case'] == 'Query':
-                if valueNew['message'] is None:
-                    # just keep the current query message if new value doesn't explicitly overwrite it
-                    valuesNext.append(valueOld)
-                    continue
-                else:
-                    # overwrite the old query
-                    valuesNext.append(valueNew)
-                    continue
+    def pruneFromFocus(self):
+        # Prune all messages from and including focus.
+        # print(f"pruning from 0 up to (no including) {str(self.focusIx)}")
+        self.messages = self.messages[:self.focusIx]
 
-        self.values = valuesNext
+    def user(self, content):
+        return self.message(user(content), overwrite=False)
 
-    # generates the messages of each Query value that has a None message
-    def submit(self):
-        messages = []
-        for value in self.values:
-            if value['case'] == 'Message':
-                # record message
-                messages.append(value['message'])
-            elif value['case'] == 'Query':
-                if value['message'] is None:
-                    # fill in query
-                    message = query(messages)
-                    value['message'] = message
-                else:
-                    # already filled
-                    messages.append(value['message'])
-            else:
-                raise Exception(f"invalid value case: {value['case']}")
+    def system(self, content):
+        return self.message(system(content), overwrite=False)
 
-    def read(): pass
+    def assistant(self, content=None, overwrite=False):
+        return self.message(assistant(content), overwrite)
 
-    def write(self, file):
-        def writeMessage(message):
-            if message['role'] == 'user':
-                file.write(f"# USER\n\n")
-                file.write(f"{message['content']}\n\n")
-            elif message['role'] == 'system':
-                file.write(f"# SYSTEM\n\n")
-                file.write(f"{message['content']}\n\n")
-            elif message['role'] == 'assistant':
-                file.write(f"# ASSISTANT\n\n")
-                file.write(f"{message['content']}\n\n")
+    def message(self, msgNew: dict, overwrite: bool): # -> str | None
 
-        for value in self.values:
-            if value['case'] == 'Message':
-                writeMessage(value['message'])
-            elif value['case'] == 'Query':
-                if value['message'] is None:
-                    writeMessage({ 'role': 'assistant', 'content': "<not generated>" })
-                else:
-                    writeMessage(value['message'])
-            else:
-                raise Exception(f"invalid value case: {value['case']}")
-
-    def print(self):
-        for value in self.values:
-            if value['case'] == 'Message':
-                print(f"\n#ROLE {value['message']['role']}\n")
-                print(value['message']['content'])
-            elif value['case'] == 'Query':
-                if value['message'] is None:
-                    print("\nEMPTY\n")
-                else:
-                    print(f"\n#ROLE {value['message']['role']}\n")
-                    print(value['message']['content'])
-            else:
-                raise Exception(f"invalid value case: {value['case']}")
-
-    def load(file):
-        return Conversation.fromJSON(json.load(file))
-
-    def save(self, file):
-        json.dump(self.toJSON(), file)
-
-    def toJSON(self):
-        return {
-            'ident': self.ident,
-            'values': self.values
-        }
-
-    def fromJSON(obj):
-        ident = obj['ident']
-        values = obj['values']
-        return Conversation(ident, values)
+        # clean input
+        if msgNew['content'] is not None:
+            msgNew['content'] = msgNew['content'].strip()
 
 
-def system(content):
+        # Apply update to focussed message if necessary.
+        # - msgNew: Message
+        # - overwrite: bool
+
+        def update():
+            # Force update of focussed message, which requires pruning any old
+            # messages after focus.
+            self.pruneFromFocus()
+            self.messages.append(msgNew)
+
+            if msgNew['role'] == "assistant" and msgNew['content'] == None:
+                # for an assistant message that has no explicit content, need to
+                # query backend using messages up to but not including focus in
+                # order to fill content
+                msgResult = client.query(self.getPreviousMessages())
+
+                self.messages[-1] = msgResult
+
+        msgOld = self.getFocussedMessage()
+
+        if overwrite:
+            # explicit overwrite, so update
+            update()
+
+        elif msgOld is None:
+            # there is no old message, so update
+            update()
+
+        elif msgOld['role'] != msgNew['role']:
+            # messages aren't even of the same role, so they aren't comparable,
+            # so update
+            update()
+
+        else:
+            # msgOld is not None
+            role = msgOld['role']
+
+            if role == "user" or role == "system":
+                if msgOld['content'] != msgNew['content']:
+                    # both messages are user-provided but have differing content, so
+                    # need to update
+                    update()
+            elif role == "assistant":
+                if msgOld['content'] is None:
+                    # old content is None, so update
+                    update()
+                elif msgNew['content'] is not None and msgOld['content'] != msgNew['content']:
+                    # both old and new content are non-None, and new content
+                    # overwrites old content, so update
+                    update()
+
+        # increment focus
+        self.focusIx += 1
+
+        # if assistant message, then return content
+        msgNew = self.messages[-1]
+        if msgNew['role'] == 'assistant':
+            return self.messages[-1]['content']
+        else:
+            return None
+
+    def save(self): saveModel(self.name, self.model)
+
+    def load(self): self.model = loadModel(self.name)
+
+    def write(self): writeModel(self.name, self.model)
+
+
+def emptyModel():  # -> Model
     return {
-        'case': 'Message',
-        'message': {
-            'role': 'system',
-            'content': content
-        }
+        'messages': []
     }
 
 
-def user(content):
-    return {
-        'case': 'Message',
-        'message': {
-            'role': 'user',
-            'content': content
-        }
-    }
+def saveModel(name: str, model: dict):
+    # - model: Model
+    with open(jsonFilepath(name), "w+") as file:
+        json.dump(model, file)
 
 
-def assistant(content=None, overwrite=False):
-    if content is None:
-        return {
-            'case': 'Query',
-            'message': None,
-            'overwrite': overwrite
-        }
-    else:
-        return {
-            'case': 'Query',
-            'message': {
-                'role': 'assistant',
-                'content': content
-            },
-            'overwrite': overwrite
-        }
+def loadModel(name: str):  # -> Model
+    # if no save exists, then first save an empty Model
+    if not path.exists(jsonFilepath(name)):
+        saveModel(name, emptyModel())
+
+    with open(jsonFilepath(name), "r") as file:
+        return json.load(file)
+
+
+def writeModel(name: str, model: dict):
+    # Writes a pretty-printed version of model to a a markdown file.
+    # - model: Model
+    with open(mdFilepath(name), "w+") as file:
+        for msg in model['messages']:
+            file.write(f"# {msg['role']}\n\n{msg['content']}\n\n")
+
+
+def jsonFilepath(name: str):  # -> str
+    return f"{name}.json"
+
+
+def mdFilepath(name: str):  # -> str
+    return f"{name}.md"
+
+
+def user(content: str):  # -> Message
+    return {'role': "user", 'content': content}
+
+
+def assistant(content: str):  # -> Message
+    return {'role': "assistant", 'content': content}
+
+
+def system(content: str):  # -> Message
+    return {'role': "system", 'content': content}
+
+
+def index_dict(d: dict, k, default=None):
+    # Safely indexes a dictionary
+    # - d: dict[key, val]
+    # - k: key
+    # - default: val | None
+    return d[k] if k in d else default
+
+
+def index_list(l: list, i, default=None):
+    # Safely indexes a list
+    # - l: list[val]
+    # - i: int
+    # - default: val | None
+    return l[i] if 0 <= i < len(l) else default
