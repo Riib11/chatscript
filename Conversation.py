@@ -48,21 +48,20 @@ class Conversation:
         # print(f"pruning from 0 up to (no including) {str(self.focusIx)}")
         self.messages = self.messages[:self.focusIx]
 
-    def user(self, content):
+    def user(self, content: str) -> str:
         return self.message(user(content), overwrite=False)
 
-    def system(self, content):
+    def system(self, content: str) -> str:
         return self.message(system(content), overwrite=False)
 
-    def assistant(self, content=None, overwrite=False):
+    def assistant(self, content: str = None, overwrite=False) -> str:
         return self.message(assistant(content), overwrite)
 
-    def message(self, msgNew: dict, overwrite: bool): # -> str | None
+    def message(self, msgNew: dict, overwrite: bool) -> str:
 
         # clean input
         if msgNew['content'] is not None:
             msgNew['content'] = msgNew['content'].strip()
-
 
         # Apply update to focussed message if necessary.
         # - msgNew: Message
@@ -103,14 +102,15 @@ class Conversation:
 
             if role == "user" or role == "system":
                 if msgOld['content'] != msgNew['content']:
-                    # both messages are user-provided but have differing content, so
-                    # need to update
+                    # both messages are user-provided but have differing
+                    # content, so need to update
                     update()
             elif role == "assistant":
                 if msgOld['content'] is None:
                     # old content is None, so update
                     update()
-                elif msgNew['content'] is not None and msgOld['content'] != msgNew['content']:
+                elif msgNew['content'] is not None and \
+                        msgOld['content'] != msgNew['content']:
                     # both old and new content are non-None, and new content
                     # overwrites old content, so update
                     update()
@@ -132,7 +132,7 @@ class Conversation:
     def write(self): writeModel(self.name, self.model)
 
 
-def emptyModel():  # -> Model
+def emptyModel() -> dict:  # -> Model
     return {
         'messages': []
     }
@@ -144,7 +144,7 @@ def saveModel(name: str, model: dict):
         json.dump(model, file)
 
 
-def loadModel(name: str):  # -> Model
+def loadModel(name: str) -> dict:  # -> Model
     # if no save exists, then first save an empty Model
     if not path.exists(jsonFilepath(name)):
         saveModel(name, emptyModel())
@@ -153,7 +153,7 @@ def loadModel(name: str):  # -> Model
         return json.load(file)
 
 
-def writeModel(name: str, model: dict):
+def writeModel(name: str, model: dict) -> dict:
     # Writes a pretty-printed version of model to a a markdown file.
     # - model: Model
     with open(mdFilepath(name), "w+") as file:
@@ -161,23 +161,23 @@ def writeModel(name: str, model: dict):
             file.write(f"# {msg['role']}\n\n{msg['content']}\n\n")
 
 
-def jsonFilepath(name: str):  # -> str
+def jsonFilepath(name: str) -> str:
     return f"{name}.json"
 
 
-def mdFilepath(name: str):  # -> str
+def mdFilepath(name: str) -> str:
     return f"{name}.md"
 
 
-def user(content: str):  # -> Message
+def user(content: str) -> dict:  # -> Message
     return {'role': "user", 'content': content}
 
 
-def assistant(content: str):  # -> Message
+def assistant(content: str) -> dict:  # -> Message
     return {'role': "assistant", 'content': content}
 
 
-def system(content: str):  # -> Message
+def system(content: str) -> dict:  # -> Message
     return {'role': "system", 'content': content}
 
 

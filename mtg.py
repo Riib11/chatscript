@@ -20,7 +20,6 @@ power/toughnes or NA
 oracle text
 """)
 
-
     convo.user(f"""
 Design a new Magic the Gathering card based on {theme}.
 """)
@@ -40,8 +39,8 @@ Design a new Magic the Gathering card based on {theme}.
 
         filename = f"{slugify(card_data['card name'], allow_unicode=False)}"
 
-        def makeFilepath(
-            filename): return f"conversations/cards/{filename}.json"
+        def makeFilepath(filename):
+            return f"conversations/cards/{filename}.json"
 
         filepath = makeFilepath(filename)
 
