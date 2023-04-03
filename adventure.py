@@ -40,15 +40,15 @@ filepath_history_json = f"{directory_main}game.json"
 
 filepath_history_md = f"{directory_main}game.md"
 
-init_summary = "Henry is a computer science PhD student who was in a relationship with a art student. You are an alien with highly advanced technology who is secretly visiting earth. No one knows that you are an alien. You have the ability to change your appearance at will to keep your identity secret, and to trick Henry into falling in love with you."
+init_summary = "You are a 15 year-old male living in rural Wisconsin. You are extremely intelligent, and have great ambitions for world domination. You work on many interesting projects, but work mostly in secret and only a few friends know about your ambitions. While you are mostly a-moral, you still recognize that morality is publically considered very important, so you reason that respective moral expectations is critical to preventing others from inhibiting your goals."
 
-master_goal = "As the gamemaster, you goal is to write detailed and realistic descriptions of what should happen as a result of the the user's actions in the game. The user is trying to get into a romantic relationship with Henry, so include some obstacles the player's advances and other girls that could take away Henry's attention from the user. At some point in the game, there should be an alien attack."
+master_goal = "As the gamemaster, you goal is to write detailed and realistic descriptions of what should happen as a result of the the user's actions in the game."
 
-player_goal = "As the player, your goal is to get into a romantic relationship with Henry without revealing your alien identity to anyone."
+player_goal = "As the player, your goal is to become the secret hegemon of Earth, where you have total power over every nation but no one knows that it is you who has this power."
 
-summary_bin = 6
+summary_bin = 3
 
-rounds_count = 12
+rounds_count = 6
 
 # ==============================================================================
 # [END] Config

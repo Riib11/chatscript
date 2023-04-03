@@ -11,7 +11,20 @@ import openai
 
 class OpenAIClient:
     def __init__(self, config_filepath="openai.json"):
-        self.setConfig(json.load(open(config_filepath, "r+")))
+        if not path.exists(config_filepath):
+            print(f"""
+[OpenAIClient] The OpenAI config file {config_filepath} does not exist. You must create a config file with this name with the following format:
+
+```
+{{
+    'api_key': '<<your OpenAI API key>>',
+    'organization_id': '<<optionally, your OpenAI organization id>>'
+}}
+```
+""".strip())
+            raise Exception(f"config file not found: {config_filepath}")
+
+        self.setConfig(json.load(open(config_filepath, "r")))
 
     def setConfig(self, config):
         self.config = config
@@ -52,4 +65,4 @@ class OpenAIClient:
         return message
 
 
-client = OpenAIClient()
+OpenAIClient.instance = OpenAIClient()

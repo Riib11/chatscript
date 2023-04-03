@@ -3,7 +3,7 @@ from os import path
 import pickle
 import sys
 import json
-from OpenAIClient import client
+from OpenAIClient import OpenAIClient
 
 """
 # Types
@@ -32,32 +32,32 @@ class Conversation:
         self.model = loadModel(self.name)
         self.focusIx = 0
 
-    def set_messages(self, messages):
+    def __set_messages(self, messages):
         self.model['messages'] = messages
 
-    messages = property(lambda self: self.model['messages'], set_messages)
+    messages = property(lambda self: self.model['messages'], __set_messages)
 
-    def getPreviousMessages(self):  # -> list[Message]
+    def __getPreviousMessages(self):  # list[Message]
         return self.messages[:self.focusIx]
 
-    def getFocussedMessage(self):  # -> Message | None
+    def __getFocussedMessage(self):  # Message | None
         return index_list(self.messages, self.focusIx)
 
-    def pruneFromFocus(self):
+    def __pruneFromFocus(self):
         # Prune all messages from and including focus.
         # print(f"pruning from 0 up to (no including) {str(self.focusIx)}")
         self.messages = self.messages[:self.focusIx]
 
     def user(self, content: str) -> str:
-        return self.message(user(content), overwrite=False)
+        return self.__message(user(content), overwrite=False)
 
     def system(self, content: str) -> str:
-        return self.message(system(content), overwrite=False)
+        return self.__message(system(content), overwrite=False)
 
     def assistant(self, content: str = None, overwrite=False) -> str:
-        return self.message(assistant(content), overwrite)
+        return self.__message(assistant(content), overwrite)
 
-    def message(self, msgNew: dict, overwrite: bool) -> str:
+    def __message(self, msgNew: dict, overwrite: bool) -> str:
 
         # clean input
         if msgNew['content'] is not None:
@@ -70,18 +70,18 @@ class Conversation:
         def update():
             # Force update of focussed message, which requires pruning any old
             # messages after focus.
-            self.pruneFromFocus()
+            self.__pruneFromFocus()
             self.messages.append(msgNew)
 
             if msgNew['role'] == "assistant" and msgNew['content'] == None:
                 # for an assistant message that has no explicit content, need to
                 # query backend using messages up to but not including focus in
                 # order to fill content
-                msgResult = client.query(self.getPreviousMessages())
+                msgResult = OpenAIClient.instance.query(self.__getPreviousMessages())
 
                 self.messages[-1] = msgResult
 
-        msgOld = self.getFocussedMessage()
+        msgOld = self.__getFocussedMessage()
 
         if overwrite:
             # explicit overwrite, so update
@@ -132,7 +132,7 @@ class Conversation:
     def write(self): writeModel(self.name, self.model)
 
 
-def emptyModel() -> dict:  # -> Model
+def emptyModel() -> dict:  # Model
     return {
         'messages': []
     }
@@ -144,7 +144,7 @@ def saveModel(name: str, model: dict):
         json.dump(model, file)
 
 
-def loadModel(name: str) -> dict:  # -> Model
+def loadModel(name: str) -> dict:  # Model
     # if no save exists, then first save an empty Model
     if not path.exists(jsonFilepath(name)):
         saveModel(name, emptyModel())
@@ -169,15 +169,15 @@ def mdFilepath(name: str) -> str:
     return f"{name}.md"
 
 
-def user(content: str) -> dict:  # -> Message
+def user(content: str) -> dict:  # Message
     return {'role': "user", 'content': content}
 
 
-def assistant(content: str) -> dict:  # -> Message
+def assistant(content: str) -> dict:  # Message
     return {'role': "assistant", 'content': content}
 
 
-def system(content: str) -> dict:  # -> Message
+def system(content: str) -> dict:  # Message
     return {'role': "system", 'content': content}
 
 
