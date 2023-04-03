@@ -29,7 +29,7 @@ There are 3 lines of conversation:
 # [BEGIN] Config
 # ==============================================================================
 
-name = "lunar-colony"
+name = "alien-romantic"
 
 directory_main = f"conversations/adventure/{name}/"
 
@@ -40,15 +40,15 @@ filepath_history_json = f"{directory_main}game.json"
 
 filepath_history_md = f"{directory_main}game.md"
 
-init_summary = "You live in New York City. The year is 2014. You are a software developer at Amazon."
+init_summary = "Henry is a computer science PhD student who was in a relationship with a art student. You are an alien with highly advanced technology who is secretly visiting earth. No one knows that you are an alien. You have the ability to change your appearance at will to keep your identity secret, and to trick Henry into falling in love with you."
 
-master_goal = "As the gamemaster, your main goal is to write detailed and realistic descriptions of what should happen as a result of the the user's actions in the game. Sometimes include obstables to the player's goals. Sometimes include suprising events that can have negative or positive impacts on the player."
+master_goal = "As the gamemaster, you goal is to write detailed and realistic descriptions of what should happen as a result of the the user's actions in the game. The user is trying to get into a romantic relationship with Henry, so include some obstacles the player's advances and other girls that could take away Henry's attention from the user. At some point in the game, there should be an alien attack."
 
-player_goal = "As the player, in the game your most important main goal above all else is to further the development of space flight technology and eventually pioneer the settlement of a human colony on the moon."
+player_goal = "As the player, your goal is to get into a romantic relationship with Henry without revealing your alien identity to anyone."
 
 summary_bin = 6
 
-rounds_count = 6
+rounds_count = 12
 
 # ==============================================================================
 # [END] Config
@@ -141,10 +141,10 @@ for _ in range(rounds_count):
         # only summarize the items, since the new summary will be appended to the
         # old summary
         summarizer.system(f"""
-    You are a summarizer of text adventure game histories. The user will provide a history of a text adventure game, where the {player_title} says what they do and then the {master_title} says what happens as a consequence of their actions. You will respond with a short, couple-sentence summary of what happened in the text adventure game history. In your summary, make sure to focus heavily on the most important events, include introductions and details of important characters, and leave out the least important events.
+You are a summarizer of text adventure game histories. The user will provide a history of a text adventure game, where the {player_title} says what they do and then the {master_title} says what happens as a consequence of their actions. You will respond with a short, couple-sentence summary of what happened in the text adventure game history. In your summary, make sure to focus heavily on the most important events, include introductions and details of important characters, and leave out the least important events.
     """)
         summarizer.user(f"""
-    The following is text adventure game history.
+The following is text adventure game history.
 
     {showHistoryItems(history['items'])}
 
@@ -153,7 +153,8 @@ for _ in range(rounds_count):
         summary = summarizer.assistant()
         summarizer.save()
         history['summary'] = f"{history['summary']} {summary}"
-        history['items_old'] = history['items']
+
+        history['items_old'] = history['items_old'] + history['items']
         history['items'] = []
 
     #
