@@ -1,3 +1,4 @@
 .ipynb_checkpoints/
 openai_api_key
 __pycache__/
+conversations-private/
