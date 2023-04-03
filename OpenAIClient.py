@@ -16,7 +16,8 @@ class OpenAIClient:
     def setConfig(self, config):
         self.config = config
         openai.api_key = self.config['api_key']
-        openai.organization = self.config['organization_id']
+        if 'organization_id' in self.config:
+            openai.organization = self.config['organization_id']
 
     def query(self, messages):  # -> Message
         # messages: list[Message]
