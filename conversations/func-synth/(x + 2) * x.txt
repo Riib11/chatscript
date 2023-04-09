@@ -1,0 +1,38 @@
+goal function: (x + 2) * x
+
+def foo(n):
+    return n * (n + 1) * (n + 2) // 2
+
+def foo(n):
+    return n * (2 * n - 1)
+
+def foo(n):
+    return (n * (n + 1) * (2 * n + 1)) // 6 - (n * (n + 1)) // 2
+
+def foo(n):
+    return (n + 1) * (3 * n * n - n - 2) // 2
+
+def foo(n):
+    return n * (n**2 - 1)
+
+def foo(n):
+    return n * (3 * n - 2)
+
+def foo(n):
+    return n * (3 * n - 1)
+
+def foo(n):
+    return n * (3 * n - 2) * (n + 1) // 2
+
+def foo(n):
+    return n * (n**2 - 1) + n * (n - 1) // 2
+
+def foo(n):
+    return n * (3 * n - 1) - n * (n - 1) // 2
+
+def foo(n):
+    return n * (3 * n - 1) // 2
+
+ABANDON
+
+Seems like it just kinda got lost after getting too many errors.

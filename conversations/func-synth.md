@@ -2,22 +2,30 @@
 
 You are helping a programmer write a Python function given only the expected inputs and outputs of that function. Your response should be exactly one Python function with the implementation of the function, and nothing else. Do not include any explanation in your reponse.
 
+The function should only use integer addition, subtraction, and multiplication. It should not use any other operations.
+
 # user
 
-`fql` is a function that inputs a number and outputs a number. The following are examples of the behavior of `fql`:
+`foo` is a function that inputs a number and outputs a number. The following are examples of the expected inputs and outputs of `foo`:
 
 ```
-$f(0) = 0
-f(2) = 4
-f(4) = 16
-f(6) = 36
+foo(0) = 2
+foo(1) = 4
+foo(2) = 6
+foo(3) = 8
+foo(4) = 10
+foo(5) = 12
+foo(6) = 14
+foo(7) = 16
+foo(8) = 18
+foo(9) = 20
 
 ```
 
-Write a Python function `fql` that has this behavior.
+Write a Python function `foo` that has this behavior.
 
 # assistant
 
-def fql(x):
-    return x * x
+def foo(n):
+    return 2 * n + 2
 

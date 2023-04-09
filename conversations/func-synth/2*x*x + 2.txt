@@ -1,0 +1,23 @@
+goal function: 2*x*x + 2
+
+def foo(n):
+    return n * (n + 1) + 2
+
+def foo(n):
+    return (n * (n + 3)) // 2 + 2
+
+def foo(n):
+    return (n * (n + 4)) + 2
+
+def foo(n):
+    return (n * (n + 4)) + 2 + (n * 2)
+
+def foo(n):
+    return (n * (n + 4)) + 2 - (n * 2)
+
+def foo(n):
+    return n * (n + 6) - 2 * n + 2
+
+def foo(n):
+    return n * (n + 8) - 2 * n + 2
+

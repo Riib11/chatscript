@@ -1,0 +1,6 @@
+goal function: 2*x*x
+
+def foo(x):
+    return x * x * 2
+
+WOW, got it instantly!

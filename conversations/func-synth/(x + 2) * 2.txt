@@ -1,0 +1,5 @@
+goal function: (x + 2) * 2
+
+def foo(n):
+    return 4 + n * 2
+
