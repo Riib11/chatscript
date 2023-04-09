@@ -16,7 +16,7 @@ You are an assistant for designing new Magic the Gathering cards based on prompt
 card name
 mana cost
 card types
-power/toughnes or NA
+power/toughness or NA
 oracle text
 """)
 
@@ -34,7 +34,7 @@ Design a new Magic the Gathering card based on {theme}.
             'mana cost': card_lines[1].strip(),
             'card types': card_lines[2].strip(),
             'power/toughness': card_lines[3].strip(),
-            'oracle text': ("\n".join(map(lambda s: s.strip(), card_lines[3:]))).strip(),
+            'oracle text': ("\n".join(map(lambda s: s.strip(), card_lines[4:]))).strip(),
         }
 
         filename = f"{slugify(card_data['card name'], allow_unicode=False)}"

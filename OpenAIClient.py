@@ -17,8 +17,9 @@ class OpenAIClient:
 
 ```
 {{
-    'api_key': '<<your OpenAI API key>>',
-    'organization_id': '<<optionally, your OpenAI organization id>>'
+    "api_key": "<<your OpenAI API key>>",
+    "organization_id": "<<optionally, your OpenAI organization id>>",
+    "model": "<<default gpt-3.5-turbo>>"
 }}
 ```
 """.strip())
@@ -31,6 +32,8 @@ class OpenAIClient:
         openai.api_key = self.config['api_key']
         if 'organization_id' in self.config:
             openai.organization = self.config['organization_id']
+        if not 'model' in self.config:
+            self.config['model'] = "gpt-3.5-turbo"
 
     def query(self, messages):  # -> Message
         # messages: list[Message]
@@ -38,7 +41,7 @@ class OpenAIClient:
         print("query ...")
 
         result = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model=self.config['model'],
             messages=messages
         )
 
