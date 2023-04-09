@@ -13,13 +13,12 @@ class OpenAIClient:
     def __init__(self, config_filepath="openai.json"):
         if not path.exists(config_filepath):
             print(f"""
-[OpenAIClient] The OpenAI config file {config_filepath} does not exist. You must create a config file with this name with the following format:
-
+[OpenAIClient] The OpenAI config file {config_filepath} does not exist. You must create a config file with this name with the following default template:
 ```
 {{
     "api_key": "<<your OpenAI API key>>",
     "organization_id": "<<optionally, your OpenAI organization id>>",
-    "model": "<<default gpt-3.5-turbo>>"
+    "model": "gpt-3.5-turbo"
 }}
 ```
 """.strip())
