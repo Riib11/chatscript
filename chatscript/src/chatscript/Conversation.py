@@ -1,6 +1,7 @@
 from os import path
 import json
-from OpenAIClient import OpenAIClient
+from chatscript.OpenAIClient import OpenAIClient
+
 
 """
 # Types
