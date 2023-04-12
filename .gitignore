@@ -3,3 +3,6 @@ openai_api_key
 __pycache__/
 conversations-private/
 openai.json
+dist/
+.venv/
+
