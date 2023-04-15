@@ -65,6 +65,14 @@ for function in functions:
 """)
 ```
 
+## Installation
+
+To install this project as a python module:
+
+```
+make install
+```
+
 ## Organization
 
 - `Conversation.py`: Defines the class `Conversation` which is the main
